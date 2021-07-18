@@ -1,0 +1,22 @@
+การทำงาน
+----------------
+1. เมื่อมีการ crate หรือ update realtime database ที่ chargeCreate/DEVICE_ID/reqDate
+cloud functions chargesOnWrite, chargesUpdate จะทำงาน ส่ง api charges ให้ omise ราคาตามที่ chargeAmount/DEVICE_ID/amount
+
+2. omise จะส่ง hooks กลับไปที่ cloud functions hook เก็บค่าที่ firestore omiseHooks
+และ update realtime database ที่ chargeCreate/DEVICE_ID/download_uri เป็นรูป QR code
+
+3. เมื่อมีการจ่ายเงินตาม qr code, omise จะส่ง hooks มาที่  cloud functions hook ละ update realtime database ที่ chargeComplete/DEVICE_ID/ 
+
+การติดตั้ง
+----------------
+1. สร้าง โฟลเดอร์  firebase, เข้าไป
+2. สร้าง firebase cloud functions
+3. copy โฟลเดอร์ functions ไปทับ
+4. เข้าไป โฟลเดอร์ functions , npm i
+5. แก้ omiseSecretKey ใน omise.js
+6. deploy, ใช้คำสั่ง  firebase deploy --only functions
+
+7. สร้างข้อมูลใน realtime database ตามภาพ
+
+ทดสอบ
