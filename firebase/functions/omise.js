@@ -1,17 +1,40 @@
+//////////////////////////////////////////
+//
+//  แก้ตัวแปร:
+//  1. databaseURL
+//  2. storageBucket
+//  3. omiseSecretKey
+//
+//////////////////////////////////////////
+
 const functions = require("firebase-functions");
 const admin = require('firebase-admin')
 admin.initializeApp({ 
   credential: admin.credential.applicationDefault() ,
-  databaseURL: "https://qr-code-wash-machine-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://YOUR_PROJECT.asia-southeast1.firebasedatabase.app/",
+  storageBucket: 'gs://YOUR_PROJECT.appspot.com'
 })
 const firestore = admin.firestore()
 const database = admin.database()
+const bucket = admin.storage().bucket();
 
 const { nanoid } = require('nanoid')
+const fetch = require('node-fetch');
+
+const mkdirp = require('mkdirp');
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
+
+const sharp = require('sharp');
 
 //omise SecretKey
-const omiseSecretKey = ""
-const amountDefault = '2000' //20 bath
+const omiseSecretKey = "OMISE_SECRET_KEY"
+const amountDefault = 20 //20 bath
+
+// set image for lcd size
+const lcdWidth = 240;
+const lcdHigh = 320;
 
 // ฟังชั่นรับค่า hook จาก omise เก็บไว้ใน firestore
 exports.hooks = functions.https.onRequest( async (request, response) => {
@@ -24,11 +47,12 @@ exports.hooks = functions.https.onRequest( async (request, response) => {
   }
 
   const d = new Date();
-  const id = d.toISOString()+'_'+request.body.key+'_'+nanoid(6); //ตั้ง id เป็นวันที่และ key ของ omise เป็อดูง่าย
+  // const id = d.toISOString()+'_'+request.body.key+'_'+nanoid(6); //ตั้ง id เป็นวันที่และ key ของ omise เป็อดูง่าย
+  const id = request.body.data.source.id+'_'+request.body.key
 
   // add to events collectin
   const addDoc = await firestore.collection('omiseHooks')
-    .doc(id).set( { ...request.body, timeStamp: admin.firestore.FieldValue.serverTimestamp() } )
+    .doc(id).set( { ...request.body, stamp_at: d.toISOString(), timeStamp: admin.firestore.FieldValue.serverTimestamp() } )
     // .add( { ...request.body, timeStamp: admin.firestore.FieldValue.serverTimestamp() } )
     .then(ref => {
       // console.log('Added omiseHooks with ID: ', ref.id);
@@ -40,6 +64,7 @@ exports.hooks = functions.https.onRequest( async (request, response) => {
   console.log('body.key =>', body.key)
   switch(body.key) {
     case 'charge.create':
+      return response.send( {error: null, msg: "charge.create omise hooks OK!"} );
     break
 
     case 'charge.complete':
@@ -47,17 +72,30 @@ exports.hooks = functions.https.onRequest( async (request, response) => {
       const failure_code = body.data.failure_code
       if(failure_code) {
         console.log('failure_message =>', body.data.failure_message)
-        const chargeComplete  = await database.ref('chargeComplete/'+deviceID).set({error: failure_code, amount: 0, resDate: new Date().toISOString()});
+        const chargeComplete  = await database.ref('chargeComplete/'+deviceID).set({
+          error: failure_code, 
+          amount: 0, 
+          resDate: new Date().toISOString(), 
+          download_uri: body.data.source.scannable_code.image.download_uri,
+          id: body.data.source.id
+        });
+        return response.send( {error: null, msg: "charge.complete omise hooks OK! failure_code"} );
       }
       else {
         const amount = body.data.amount
         console.log('amount =>', amount)
-        const chargeComplete  = await database.ref('chargeComplete/'+deviceID).set({error: 0, amount: amount/100, resDate: new Date().toISOString()});
+        const chargeComplete  = await database.ref('chargeComplete/'+deviceID).set({
+          error: 0, 
+          amount: amount/100, 
+          resDate: new Date().toISOString(), 
+          download_uri: body.data.source.scannable_code.image.download_uri,
+          id: body.data.source.id
+        });
+        return response.send( {error: null, msg: "charge.complete omise hooks OK!"} );
       }
     break
   }
 
-  response.send( {error: null, msg: "omise hooks OK!"} );
 });
 
 exports.chargesOnWrite = functions.database.ref('/chargeCreate/{pushId}/reqDate').onWrite( async (change, context) => {
@@ -82,22 +120,66 @@ exports.chargesOnWrite = functions.database.ref('/chargeCreate/{pushId}/reqDate'
   // return change.after.ref.parent.child('download_uri').set(uri);
 
   const deviceID = context.params.pushId
-  console.log('chargesOnUpdate deviceID =>', deviceID);
+  console.log('chargesOnWrite deviceID =>', deviceID);
   const amountSnapshot  = await database.ref('chargeAmount/'+deviceID+'/amount').once('value');
   let amount = amountSnapshot.val();
   console.log('amount =>', amount);
-  amount = (!amount)? amountDefault: amount+'00'
-  // const uri = new Date().toUTCString()
-  // return change.after.ref.parent.child('download_uri').set(uri);
+  // amount = (!amount)? amountDefault: amount+'00'
+  if(!amount) {
+    amount = amountDefault+'00'
+    const writeAmount = await database.ref('chargeAmount/'+deviceID+'/amount').set(amountDefault);
+  }
+  else {
+    amount = amount+'00'
+  }
 
-  return sendCharges(amount, deviceID, (error, resp)=>{
-    if(error) 
-      return functions.logger.error("sendCharges error => " + error); 
+  await sendCharges(amount, deviceID)
+    .then( async(resp) => {
 
-    const uri = resp.source.scannable_code.image.download_uri
-    console.log('download_uri =>', uri);
-    return change.after.ref.parent.child('download_uri').set(uri);
-  })
+      const url = resp.source.scannable_code.image.download_uri
+      const id = resp.source.id
+
+      const d = new Date()
+        .toLocaleString('th', {year: 'numeric', month: '2-digit', day: '2-digit'})
+        .replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1')
+
+      const filePath = 'qrcode/'+d+'/'+id+'.svg'
+      const tempLocalFile = path.join(os.tmpdir(), filePath);
+      const tempLocalDir = path.dirname(tempLocalFile);
+
+      const SVGFilePath = filePath
+      const tempLocalSVGFile = path.join(os.tmpdir(), SVGFilePath);
+
+      await mkdirp(tempLocalDir);
+
+      const res = await fetch(url);
+      const buffer = await res.buffer();
+      console.log('tempLocalSVGFile =>', tempLocalSVGFile)
+      
+      fs.writeFileSync(tempLocalSVGFile, buffer)
+      console.log('finished downloading!')
+
+      
+      const JPEGFilePath = 'qrcode/'+d+'/'+id+'.jpg'
+      const tempLocalJPEGFile = path.join(os.tmpdir(), JPEGFilePath);
+      console.log('tempLocalJPEGFile =>', tempLocalJPEGFile)
+
+      const img = await sharp(tempLocalSVGFile);
+      const resized = await img.resize({ width: lcdWidth, height: lcdHigh, fit: 'contain', });
+      await resized.toFile(tempLocalJPEGFile);
+      console.log('resized')
+
+      // Uploading the JPEG image.    
+      await bucket.upload(tempLocalJPEGFile, {destination: JPEGFilePath});
+      functions.logger.log('JPEG image uploaded to Storage at', JPEGFilePath);
+
+      const data = { qrcode: JPEGFilePath, id: resp.source.id, download_uri: resp.source.scannable_code.image.download_uri}
+      console.log('update data =>', data);
+      return await change.after.ref.parent.update(data);
+    })
+    .catch(err => { return functions.logger.error(err) } )
+
+  // console.log('chargesOnUpdate finished');
 
 });
 
@@ -116,53 +198,146 @@ exports.chargesOnUpdate = functions.database.ref('/chargeCreate/{pushId}/reqDate
   const amountSnapshot  = await database.ref('chargeAmount/'+deviceID+'/amount').once('value');
   let amount = amountSnapshot.val();
   console.log('amount =>', amount);
-  amount = (!amount)? amountDefault: amount+'00'
-  // const uri = new Date().toUTCString()
-  // return change.after.ref.parent.child('download_uri').set(uri);
+  // amount = (!amount)? amountDefault: amount+'00'
+  if(!amount) {
+    amount = amountDefault+'00'
+    const writeAmount = await database.ref('chargeAmount/'+deviceID+'/amount').set(amountDefault);
+  }
+  else {
+    amount = amount+'00'
+  }
 
-  return sendCharges(amount, deviceID, (error, resp)=>{
-    if(error) 
-      return functions.logger.error("sendCharges error => " + error); 
+  await sendCharges(amount, deviceID)
+    .then( async(resp) => {
 
-    const uri = resp.source.scannable_code.image.download_uri
-    console.log('download_uri =>', uri);
-    return change.after.ref.parent.child('download_uri').set(uri);
-  })
+      const url = resp.source.scannable_code.image.download_uri
+      const id = resp.source.id
+
+      const d = new Date()
+        .toLocaleString('th', {year: 'numeric', month: '2-digit', day: '2-digit'})
+        .replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$2-$1')
+
+      const filePath = 'qrcode/'+d+'/'+id+'.svg'
+      const tempLocalFile = path.join(os.tmpdir(), filePath);
+      const tempLocalDir = path.dirname(tempLocalFile);
+
+      const SVGFilePath = filePath
+      const tempLocalSVGFile = path.join(os.tmpdir(), SVGFilePath);
+
+      await mkdirp(tempLocalDir);
+
+      const res = await fetch(url);
+      const buffer = await res.buffer();
+      console.log('tempLocalSVGFile =>', tempLocalSVGFile)
+      
+      fs.writeFileSync(tempLocalSVGFile, buffer)
+      console.log('finished downloading!')
+
+      const resizewidth = 240;
+      const JPEGFilePath = 'qrcode/'+d+'/'+id+'.jpg'
+      const tempLocalJPEGFile = path.join(os.tmpdir(), JPEGFilePath);
+      console.log('tempLocalJPEGFile =>', tempLocalJPEGFile)
+
+      const img = await sharp(tempLocalSVGFile);
+      const resized = await img.resize({ width: lcdWidth, height: lcdHigh, fit: 'contain', });
+      await resized.toFile(tempLocalJPEGFile);
+      console.log('resized')
+
+      // Uploading the JPEG image.    
+      await bucket.upload(tempLocalJPEGFile, {destination: JPEGFilePath});
+      functions.logger.log('JPEG image uploaded to Storage at', JPEGFilePath);
+
+      const data = { qrcode: JPEGFilePath, id: resp.source.id, download_uri: resp.source.scannable_code.image.download_uri}
+      console.log('update data =>', data);
+      return await change.after.ref.parent.update(data);
+    })
+    .catch(err => { return functions.logger.error(err) } )
+
+  // console.log('chargesOnUpdate finished');
 
 });
 
 const sendCharges = (amount, id, cb) => {
-  // const amount = '2000' // 20 Baht
-  var omise = require('omise')({
-    'secretKey': omiseSecretKey,
-    'omiseVersion': '2019-05-25'
-  });
-  omise.charges.create({
-    'description': id,
-    'amount': amount, 
-    'currency': 'THB',
-    // 'capture': false,
-    'source': {
-      'type': 'promptpay'
-    }
-  }, function(err, resp) {
-    // console.log('err, resp =>', err, resp)
-    if (resp.paid) {
-      //Success
-      cb(null, resp)
-    } else {
-      //Handle failure
-      // throw resp.failure_code;
-      cb(resp.failure_code, resp)
-    }
+  return new Promise((resolve, reject) => {
+    // const amount = '2000' // 20 Baht
+    var omise = require('omise')({
+      'secretKey': omiseSecretKey,
+      'omiseVersion': '2019-05-25'
+    });
+    omise.charges.create({
+      'description': id,
+      'amount': amount, 
+      'currency': 'THB',
+      // 'capture': false,
+      'source': {
+        'type': 'promptpay'
+      }
+    }, function(err, resp) {
+      // console.log('err, resp =>', err, resp)
+      if (err) {
+        return reject(err)                  
+      }
+      if(resp.failure_code) {
+        return reject(resp.failure_code)
+      }
+      
+      resolve(resp)
+     
+    })
   });
 }
 
-// exports.testCharges = functions.https.onRequest((request, response) => {
-//   sendCharges('2000', 'id1234', (error, resp)=>{
-//     if(error) return response.status(400).send({error: error, msg: null});
+exports.test = functions.https.onRequest( async (request, response) => {
+  const amount="3500"
+  const deviceID="id0000"
+  await sendCharges(amount, deviceID)
+    .then( async(resp) => {
+      console.log('===== resp =>', resp)
+      
+      const url = resp.source.scannable_code.image.download_uri
+      const id = resp.source.id
 
-//     response.send({error: null, msg: resp});
-//   })
+      const filePath = 'qrcode/'+id+'.svg'
+      const tempLocalFile = path.join(os.tmpdir(), filePath);
+      const tempLocalDir = path.dirname(tempLocalFile);
 
-// });
+      const SVGFilePath = filePath
+      const tempLocalSVGFile = path.join(os.tmpdir(), SVGFilePath);
+
+      await mkdirp(tempLocalDir);
+
+      const res = await fetch(url);
+      const buffer = await res.buffer();
+      console.log('tempLocalSVGFile =>', tempLocalSVGFile)
+      
+      fs.writeFileSync(tempLocalSVGFile, buffer)
+      console.log('finished downloading!')
+
+      const resizewidth = 240;
+      const JPEGFilePath = 'qrcode/'+id+'.jpg'
+      const tempLocalJPEGFile = path.join(os.tmpdir(), JPEGFilePath);
+      console.log('tempLocalJPEGFile =>', tempLocalJPEGFile)
+
+      const img = await sharp(tempLocalSVGFile);
+      const resized = await img.resize(resizewidth);
+      await resized.toFile(tempLocalJPEGFile);
+      console.log('resized')
+
+      // Uploading the JPEG image.    
+      // await bucket.upload(tempLocalJPEGFile, {destination: JPEGFilePath});
+      // functions.logger.log('JPEG image uploaded to Storage at', JPEGFilePath);
+
+      // const data = { qrcode: JPEGFilePath, id: resp.source.id, download_uri: resp.source.scannable_code.image.download_uri}
+      // console.log('data =>', data);
+      // return await change.after.ref.parent.update(data);
+
+      response.send({error: null, msg: "resp"});
+    })
+    .catch(err => { 
+      functions.logger.error(err)
+      response.send({error: true, msg: err});
+    })
+    
+  console.log('chargesOnUpdate finished');
+
+});

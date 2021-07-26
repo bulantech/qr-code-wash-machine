@@ -12,11 +12,16 @@ cloud functions chargesOnWrite, chargesUpdate จะทำงาน ส่ง ap
 ----------------
 1. สร้าง โฟลเดอร์  firebase, เข้าไป
 2. สร้าง firebase cloud functions
+mkdir firebase
+cd firebase
+firebase init
+
 3. copy โฟลเดอร์ functions ไปทับ
 4. เข้าไป โฟลเดอร์ functions , npm i
 5. แก้ omiseSecretKey ใน omise.js
-6. deploy, ใช้คำสั่ง  firebase deploy --only functions
+6. แก้ databaseURL
+7. deploy, ใช้คำสั่ง  firebase deploy --only functions
 
-7. สร้างข้อมูลใน realtime database ตามภาพ
+8. สร้างข้อมูลใน realtime database ตามภาพ
 
 ทดสอบ

@@ -15,6 +15,6 @@ exports.omiseHooks = omise.hooks;
 exports.omiseChargesOnWrite = omise.chargesOnWrite;
 exports.omiseChargesOnUpdate = omise.chargesOnUpdate;
 
-// exports.testCharges = omise.testCharges;
+// exports.test = omise.test;
 
 // exports.lineHooks = line.hooks;
