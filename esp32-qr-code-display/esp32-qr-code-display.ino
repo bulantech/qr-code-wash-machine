@@ -22,8 +22,10 @@
 #include <WiFi.h> 
 
 /* 1. Define the WiFi credentials */
-#define WIFI_SSID "YOUR_WIFI_NAME"
-#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+//#define WIFI_SSID "PP_RD"
+//#define WIFI_PASSWORD "ppetech9"
+#define WIFI_SSID "TrueGigatexFiber_2.4G_A48"
+#define WIFI_PASSWORD "dn3p93tk"
 
 #include "time.h"
 const char* ntpServer = "pool.ntp.org";
@@ -78,16 +80,16 @@ setup_t user; // The library defines the type "setup_t" as a struct
 #include "addons/RTDBHelper.h"
 
 /* 2. Define the API Key */
-#define API_KEY "Credentials API Keys" //see https://console.cloud.google.com/apis/credentials
+#define API_KEY "AIzaSyC0elHCl2kTeocr2CQI52LYRp4TcZGHjXM"
 
 /* 3. Define the RTDB URL */
-#define DATABASE_URL "YOUR_PROJECT.asia-southeast1.firebasedatabase.app/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+#define DATABASE_URL "qr-code-wash-machine-default-rtdb.asia-southeast1.firebasedatabase.app/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
 
-#define STORAGE_BUCKET_ID "YOUR_PROJECT.appspot.com"
+#define STORAGE_BUCKET_ID "qr-code-wash-machine.appspot.com"
 
 /* 4. Define the user Email and password that alreadey registerd or added in your project */
-#define USER_EMAIL "USER@gmail.com"
-#define USER_PASSWORD "xxxxx"
+#define USER_EMAIL "bulantech@gmail.com"
+#define USER_PASSWORD "123456"
 
 //Define Firebase Data object
 FirebaseData fbdo;

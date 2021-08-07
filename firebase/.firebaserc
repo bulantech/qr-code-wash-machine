@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "qr-code-wash-machine"
+  },
+  "targets": {
+    "qr-code-wash-machine": {
+      "hosting": {
+        "liff": [
+          "liff-scanqr"
+        ],
+        "app": [
+          "qr-code-wash-machine"
+        ]
+      }
+    }
   }
 }

@@ -1,22 +1,23 @@
 //////////////////////////////////////////
 //
 //  แก้ตัวแปร:
-//  1. databaseURL
-//  2. storageBucket
-//  3. omiseSecretKey
+//  1. omiseSecretKey
 //
 //////////////////////////////////////////
 
+// const functions = require("firebase-functions");
+// const admin = require('firebase-admin')
+// admin.initializeApp({ 
+//   credential: admin.credential.applicationDefault() ,
+//   databaseURL: "https://qr-code-wash-machine-default-rtdb.asia-southeast1.firebasedatabase.app/",
+//   storageBucket: 'gs://qr-code-wash-machine.appspot.com'
+// })
+// const firestore = admin.firestore()
+// const database = admin.database()
+// const bucket = admin.storage().bucket();
+
 const functions = require("firebase-functions");
-const admin = require('firebase-admin')
-admin.initializeApp({ 
-  credential: admin.credential.applicationDefault() ,
-  databaseURL: "https://YOUR_PROJECT.asia-southeast1.firebasedatabase.app/",
-  storageBucket: 'gs://YOUR_PROJECT.appspot.com'
-})
-const firestore = admin.firestore()
-const database = admin.database()
-const bucket = admin.storage().bucket();
+const { admin, firestore, database, bucket } = require('./firebase-admin');
 
 const { nanoid } = require('nanoid')
 const fetch = require('node-fetch');
@@ -29,7 +30,7 @@ const fs = require('fs');
 const sharp = require('sharp');
 
 //omise SecretKey
-const omiseSecretKey = "OMISE_SECRET_KEY"
+const omiseSecretKey = ""
 const amountDefault = 20 //20 bath
 
 // set image for lcd size
@@ -189,7 +190,7 @@ exports.chargesOnUpdate = functions.database.ref('/chargeCreate/{pushId}/reqDate
 
   // Exit when the data is deleted.
   if (!change.after.exists()) {
-    functions.logger.warning("!change.after.exists()");
+    functions.logger.warn("!change.after.exists()");
     return null;
   }
 

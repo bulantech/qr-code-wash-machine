@@ -1,0 +1,39 @@
+https://dialogflow.cloud.google.com/
+
+
+สร้าง LINE Chatbot ง่ายๆ ด้วย Dialogflow
+
+https://siriphonnot.medium.com/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-line-chatbot-%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-dialogflow-207e86487651
+
+
+[Dialogflow x LINE] สร้าง Chatbot LINE แบบง่ายๆ ด้วย Dialogflow และ LINE Bot Designer กันเถอะ
+
+https://medium.com/linedevth/line-x-dialogflow-%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-chatbot-line-%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-dialogflow-%E0%B9%81%E0%B8%A5%E0%B8%B0-line-bot-designer-%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B9%80%E0%B8%96%E0%B8%AD%E0%B8%B0-572476c2eacd
+
+
+เรียนรู้การ Integrate LINE Bot เข้ากับ Dialogflow และ Firebase ผ่าน BMI Bot
+
+https://medium.com/linedevth/%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99%E0%B8%A3%E0%B8%B9%E0%B9%89%E0%B8%81%E0%B8%B2%E0%B8%A3-integrate-line-bot-%E0%B9%80%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B8%81%E0%B8%B1%E0%B8%9A-dialogflow-%E0%B9%81%E0%B8%A5%E0%B8%B0-firebase-%E0%B8%9C%E0%B9%88%E0%B8%B2%E0%B8%99-bmi-bot-5a30a672f6ae
+
+
+เชื่อมต่อ Realtime DB และ Firestore จาก Dialogflow เพื่อให้ LINE Bot ของคุณเจ๋งกว่าเดิม
+
+https://medium.com/linedevth/%E0%B9%80%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%A1%E0%B8%95%E0%B9%88%E0%B8%AD-realtime-db-%E0%B9%81%E0%B8%A5%E0%B8%B0-firestore-%E0%B8%88%E0%B8%B2%E0%B8%81-dialogflow-%E0%B9%80%E0%B8%9E%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B9%83%E0%B8%AB%E0%B9%89-line-bot-%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B8%84%E0%B8%B8%E0%B8%93%E0%B9%80%E0%B8%88%E0%B9%8B%E0%B8%87%E0%B8%81%E0%B8%A7%E0%B9%88%E0%B8%B2%E0%B9%80%E0%B8%94%E0%B8%B4%E0%B8%A1-cd47b89eedcd
+
+
+https://gist.github.com/jirawatee/1d58fc98a8543e4b46e37d8d5693691d
+
+
+เรียนรู้การใช้งาน Entities ใน Dialogflow และ Google Calendar API ผ่าน Appointment Scheduler Bot
+
+https://medium.com/linedevth/%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99%E0%B8%A3%E0%B8%B9%E0%B9%89%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%83%E0%B8%8A%E0%B9%89%E0%B8%87%E0%B8%B2%E0%B8%99-entities-%E0%B9%83%E0%B8%99-dialogflow-%E0%B9%81%E0%B8%A5%E0%B8%B0-google-calendar-api-%E0%B8%9C%E0%B9%88%E0%B8%B2%E0%B8%99-appointment-scheduler-bot-185fca84faa7
+
+
+วิธีใช้ Dialogflow ให้แทบไม่ต้องเสียเงิน แม้จะ Scale ให้มีผู้ใช้หลักแสนคน
+
+https://medium.com/@ekkalakfm/%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B9%81%E0%B8%AE%E0%B9%87%E0%B8%84-dialogflow-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B9%81%E0%B8%97%E0%B8%9A%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%AA%E0%B8%B5%E0%B8%A2%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99-%E0%B9%81%E0%B8%A1%E0%B9%89%E0%B8%88%E0%B8%B0-scale-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%A1%E0%B8%B5%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B9%83%E0%B8%8A%E0%B9%89%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%81%E0%B9%81%E0%B8%AA%E0%B8%99%E0%B8%84%E0%B8%99-5105a1a5640e
+
+
+มาทบทวนการทำ chatbot กับคอร์ส Building LINE Chatbot using DialogFlow
+
+https://www.mikkipastel.com/online-course-building-line-chatbot-using-dialogflow/

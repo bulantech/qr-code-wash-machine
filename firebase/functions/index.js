@@ -9,12 +9,13 @@ const functions = require("firebase-functions");
 // });
 
 const omise = require('./omise');
-// const line = require('./line');
+const line = require('./line');
 
 exports.omiseHooks = omise.hooks;
 exports.omiseChargesOnWrite = omise.chargesOnWrite;
 exports.omiseChargesOnUpdate = omise.chargesOnUpdate;
 
-// exports.test = omise.test;
+exports.lineHooks = line.hooks;
+exports.lineOnUpdate = line.onUpdate;
 
-// exports.lineHooks = line.hooks;
+// exports.test = omise.test;

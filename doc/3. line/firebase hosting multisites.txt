@@ -1,0 +1,61 @@
+https://firebase.google.com/docs/hosting/multisites
+
+
+// command
+
+firebase init hosting
+
+firebase target:apply hosting liff liff-scanqr
+firebase target:apply hosting app qr-code-wash-machine
+
+firebase deploy --only hosting:liff
+firebase deploy --only hosting:app
+
+
+// .firebaserc file
+{
+  "projects": {
+    "default": "qr-code-wash-machine"
+  },
+  "targets": {
+    "qr-code-wash-machine": {
+      "hosting": {
+        "liff": [
+          "liff-scanqr"
+        ],
+        "app": [
+          "qr-code-wash-machine"
+        ]
+      }
+    }
+  }
+}
+
+// firebase.json
+{
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": [
+    {
+      "target": "liff",
+      "public": "public/liff",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "target": "app",
+      "public": "public/app",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
+  ]
+}
+
+
